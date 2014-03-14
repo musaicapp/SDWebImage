@@ -33,7 +33,10 @@ inline UIImage *SDScaledImageForKey(NSString *key, UIImage *image) {
                 }
             }
 
-            UIImage *scaledImage = [[UIImage alloc] initWithCGImage:image.CGImage scale:scale orientation:image.imageOrientation];
+            // Modified by michael: show 2x scaled images on retina devices
+            // (SDWebImage doesn't automatically scale unless the files are named @2x)
+            //UIImage *scaledImage = [[UIImage alloc] initWithCGImage:image.CGImage scale: [[UIScreen mainScreen] scale] orientation:image.imageOrientation];
+            UIImage *scaledImage = [[UIImage alloc] initWithCGImage:image.CGImage scale: scale orientation:image.imageOrientation];
             image = scaledImage;
         }
         return image;
