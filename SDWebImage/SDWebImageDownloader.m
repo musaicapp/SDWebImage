@@ -153,8 +153,14 @@ static NSString *const kCompletedCallbackKey = @"completed";
                                                                      [sself removeCallbacksForURL:url];
                                                                  }];
         
+        if (wself.username && wself.password) {
+            operation.credential = [NSURLCredential credentialWithUser:wself.username password:wself.password persistence:NSURLCredentialPersistenceForSession];
+        }
+        
         if (options & SDWebImageDownloaderHighPriority) {
             operation.queuePriority = NSOperationQueuePriorityHigh;
+        } else if (options & SDWebImageDownloaderLowPriority) {
+            operation.queuePriority = NSOperationQueuePriorityLow;
         }
 
         [wself.downloadQueue addOperation:operation];
