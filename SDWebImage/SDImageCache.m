@@ -200,12 +200,24 @@ BOOL ImageDataHasPNGPreffix(NSData *data) {
 }
 
 - (BOOL)diskImageExistsWithKey:(NSString *)key {
-    __block BOOL exists = NO;
-    dispatch_sync(_ioQueue, ^{
-        exists = [_fileManager fileExistsAtPath:[self defaultCachePathForKey:key]];
-    });
-
+    BOOL exists = NO;
+    
+    // this is an exception to access the filemanager on another queue than ioQueue, but we are using the shared instance
+    // from apple docs on NSFileManager: The methods of the shared NSFileManager object can be called from multiple threads safely.
+    exists = [[NSFileManager defaultManager] fileExistsAtPath:[self defaultCachePathForKey:key]];
+    
     return exists;
+}
+
+- (void)diskImageExistsWithKey:(NSString *)key completion:(SDWebImageCheckCacheCompletionBlock)completionBlock {
+    dispatch_async(_ioQueue, ^{
+        BOOL exists = [_fileManager fileExistsAtPath:[self defaultCachePathForKey:key]];
+        if (completionBlock) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completionBlock(exists);
+            });
+        }
+    });
 }
 
 - (UIImage *)imageFromMemoryCacheForKey:(NSString *)key {
@@ -304,18 +316,18 @@ BOOL ImageDataHasPNGPreffix(NSData *data) {
 }
 
 - (void)removeImageForKey:(NSString *)key {
-    [self removeImageForKey:key withCompletition:nil];
+    [self removeImageForKey:key withCompletion:nil];
 }
 
-- (void)removeImageForKey:(NSString *)key withCompletition:(void (^)())completion {
-    [self removeImageForKey:key fromDisk:YES withCompletition:completion];
+- (void)removeImageForKey:(NSString *)key withCompletion:(void (^)())completion {
+    [self removeImageForKey:key fromDisk:YES withCompletion:completion];
 }
 
 - (void)removeImageForKey:(NSString *)key fromDisk:(BOOL)fromDisk {
-    [self removeImageForKey:key fromDisk:fromDisk withCompletition:nil];
+    [self removeImageForKey:key fromDisk:fromDisk withCompletion:nil];
 }
 
-- (void)removeImageForKey:(NSString *)key fromDisk:(BOOL)fromDisk withCompletition:(void (^)())completion {
+- (void)removeImageForKey:(NSString *)key fromDisk:(BOOL)fromDisk withCompletion:(void (^)())completion {
     
     if (key == nil) {
         return;

@@ -26,6 +26,8 @@ typedef NS_ENUM(NSInteger, SDImageCacheType) {
 
 typedef void(^SDWebImageQueryCompletedBlock)(UIImage *image, SDImageCacheType cacheType);
 
+typedef void(^SDWebImageCheckCacheCompletionBlock)(BOOL isInCache);
+
 /**
  * SDImageCache maintains a memory cache and an optional disk cache. Disk cache write operations are performed
  * asynchronous so it doesn’t add unnecessary latency to the UI.
@@ -134,7 +136,7 @@ typedef void(^SDWebImageQueryCompletedBlock)(UIImage *image, SDImageCacheType ca
  * @param key             The unique image cache key
  * @param completionBlock An block that should be executed after the image has been removed (optional)
  */
-- (void)removeImageForKey:(NSString *)key withCompletition:(void (^)())completion;
+- (void)removeImageForKey:(NSString *)key withCompletion:(void (^)())completion;
 
 /**
  * Remove the image from memory and optionally disk cache synchronously
@@ -151,7 +153,7 @@ typedef void(^SDWebImageQueryCompletedBlock)(UIImage *image, SDImageCacheType ca
  * @param fromDisk        Also remove cache entry from disk if YES
  * @param completionBlock An block that should be executed after the image has been removed (optional)
  */
-- (void)removeImageForKey:(NSString *)key fromDisk:(BOOL)fromDisk withCompletition:(void (^)())completion;
+- (void)removeImageForKey:(NSString *)key fromDisk:(BOOL)fromDisk withCompletion:(void (^)())completion;
 
 /**
  * Clear all memory cached images
@@ -198,7 +200,20 @@ typedef void(^SDWebImageQueryCompletedBlock)(UIImage *image, SDImageCacheType ca
 - (void)calculateSizeWithCompletionBlock:(void (^)(NSUInteger fileCount, NSUInteger totalSize))completionBlock;
 
 /**
- * Check if image exists in cache already
+ *  Async check if image exists in disk cache already (does not load the image)
+ *
+ *  @param key             the key describing the url
+ *  @param completionBlock the block to be executed when the check is done.
+ *  @note the completion block will be always executed on the main queue
+ */
+- (void)diskImageExistsWithKey:(NSString *)key completion:(SDWebImageCheckCacheCompletionBlock)completionBlock;
+
+/**
+ *  Check if image exists in disk cache already (does not load the image)
+ *
+ *  @param key the key describing the url
+ *
+ *  @return YES if an image exists for the given key
  */
 - (BOOL)diskImageExistsWithKey:(NSString *)key;
 
